@@ -1,4 +1,4 @@
-module github.com/sutapurachina/exchange-modules
+module github.com/sutapurachina/exchange-models
 
 go 1.21.3
 
