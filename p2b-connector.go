@@ -1,0 +1,206 @@
+package exchange_models
+
+import (
+	"fmt"
+	"github.com/sutapurachina/go-p2pb2b"
+	"strconv"
+)
+
+const (
+	P2BBuy  = "buy"
+	P2BSell = "sell"
+)
+
+type P2BConnector struct {
+	client p2pb2b.Client
+}
+
+func NewP2BConnector(publicKey, secretKey string) (*P2BConnector, error) {
+	client, err := p2pb2b.NewClient(publicKey, secretKey)
+	if err != nil {
+		return nil, err
+	}
+	return &P2BConnector{
+		client: client,
+	}, nil
+}
+
+func (c *P2BConnector) PostLimitOrder(base, quote string, side Side, baseAmount, price float64, basePrecision, pricePrecision int) (id string, err error) {
+	orderSide := P2BSell
+	if side == Buy {
+		orderSide = P2BBuy
+	}
+	req := &p2pb2b.CreateOrderRequest{
+		Market: symbol(base, quote),
+		Side:   orderSide,
+		Price:  Round(price, pricePrecision),
+		Amount: Round(baseAmount, basePrecision),
+	}
+	resp, err := c.client.CreateOrder(req)
+	if err != nil {
+		return
+	}
+	id = strconv.FormatInt(resp.Result.OrderID, 10)
+	return
+}
+
+func (c *P2BConnector) CancelOrder(orderId, base, quote string) error {
+	numericalOrderId, err := strconv.ParseInt(orderId, 10, 64)
+	if err != nil {
+		return err
+	}
+	req := &p2pb2b.CancelOrderRequest{
+		OrderID: numericalOrderId,
+		Market:  symbol(base, quote),
+	}
+	_, err = c.client.CancelOrder(req)
+	return err
+}
+
+func (c *P2BConnector) AllOpenOrders(base, quote string, basePrecision, pricePrecision int) ([]*NetOrder, error) {
+	var offset int64 = 0
+	res := make([]*NetOrder, 0, 1)
+	orders, err := c.OpenOrders(base, quote, basePrecision, pricePrecision, offset, 100)
+	if err != nil {
+		return nil, err
+	}
+	res = append(res, orders...)
+	for orders != nil && len(orders) > 0 {
+		offset += 100
+		orders, err = c.OpenOrders(base, quote, basePrecision, pricePrecision, offset, 100)
+		res = append(res, orders...)
+
+	}
+	return res, nil
+}
+
+func (c *P2BConnector) OpenOrders(base, quote string, basePrecision, pricePrecision int, offset, limit int64) ([]*NetOrder, error) {
+	req := &p2pb2b.QueryUnexecutedRequest{
+		Market: symbol(base, quote),
+		Offset: offset,
+		Limit:  limit,
+	}
+	resp, err := c.client.QueryUnexecuted(req)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*NetOrder, 0, 1)
+	for _, unexecutedOrder := range resp.Result {
+		side := Sell
+		if unexecutedOrder.Side == P2BBuy {
+			side = Buy
+		}
+		price, err := strconv.ParseFloat(unexecutedOrder.Price, 64)
+		if err != nil {
+			return nil, err
+		}
+		amount, err := strconv.ParseFloat(unexecutedOrder.Amount, 64)
+		if err != nil {
+			return nil, err
+		}
+		left, err := strconv.ParseFloat(unexecutedOrder.Left, 64)
+		if err != nil {
+			return nil, err
+		}
+		status := New
+		if left > 0 {
+			status = PartiallyFilled
+		}
+		orderConfig := &NetOrderConfig{
+			Id:           fmt.Sprintf("%d", unexecutedOrder.Id),
+			ExName:       P2PB2B,
+			Symbol:       symbol(base, quote),
+			OrderType:    Limit,
+			Side:         side,
+			Status:       status,
+			Price:        price,
+			BaseAmount:   amount,
+			BasePrec:     basePrecision,
+			PricePrec:    pricePrecision,
+			FilledAmount: Round(amount-left, basePrecision),
+		}
+		order, err := NewNetOrder(orderConfig)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, order)
+	}
+	return res, err
+}
+
+func (c *P2BConnector) OrderBook(base, quote string, side Side, basePrecision, pricePrecision int, offset, limit int64) ([]*NetOrder, error) {
+	orderSide := P2BBuy
+	if side == Sell {
+		orderSide = P2BSell
+	}
+	resp, err := c.client.GetOrderBook(symbol(base, quote), orderSide, offset, limit)
+	if err != nil {
+		return nil, err
+	}
+	orders := make([]*NetOrder, 0, 1)
+	for _, order := range resp.Result.Orders {
+		side := Sell
+		if order.Side == P2BBuy {
+			side = Buy
+		}
+		price := order.Price
+		amount := order.Amount
+		left := order.Left
+		status := New
+		if left > 0 {
+			status = PartiallyFilled
+		}
+		orderConfig := &NetOrderConfig{
+			Id:           fmt.Sprintf("%d", order.ID),
+			ExName:       P2PB2B,
+			Symbol:       symbol(base, quote),
+			OrderType:    Limit,
+			Side:         side,
+			Status:       status,
+			Price:        price,
+			BaseAmount:   amount,
+			BasePrec:     basePrecision,
+			PricePrec:    pricePrecision,
+			FilledAmount: Round(amount-left, basePrecision),
+		}
+		order, err := NewNetOrder(orderConfig)
+		if err != nil {
+			return nil, err
+		}
+		orders = append(orders, order)
+	}
+	return orders, nil
+}
+
+func (c *P2BConnector) FullOrderBook(base, quote string, side Side, basePrecision, pricePrecision int) ([]*NetOrder, error) {
+	var offset int64 = 0
+	res := make([]*NetOrder, 0, 1)
+	orders, err := c.OrderBook(base, quote, side, basePrecision, pricePrecision, offset, 100)
+	if err != nil {
+		return nil, err
+	}
+	res = append(res, orders...)
+	for orders != nil && len(orders) > 0 {
+		offset += 100
+		orders, err = c.OrderBook(base, quote, side, basePrecision, pricePrecision, offset, 100)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, orders...)
+	}
+	return res, nil
+}
+
+func (c *P2BConnector) BestBidBestAsk(base, quote string) (bestBid, bestAsk float64, err error) {
+	res, err := c.client.GetDepthResult(symbol(base, quote), 1)
+	if err != nil {
+		return 0, 0, err
+	}
+	bestBid = res.Result.Bids[0][0]
+	bestAsk = res.Result.Asks[0][0]
+	return
+}
+
+func symbol(base, quote string) string {
+	return base + "_" + quote
+}
