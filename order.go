@@ -64,6 +64,8 @@ type NetOrderConfig struct {
 	BaseAmount   float64
 	FilledAmount float64
 	PreviousId   string
+	CreationDate time.Time
+	DeathDate    time.Time
 	BasePrec     int
 	PricePrec    int
 }
@@ -80,6 +82,8 @@ func newNetOrder(config *NetOrderConfig) *NetOrder {
 		baseAmount:   config.BaseAmount,
 		filledAmount: config.FilledAmount,
 		previousId:   config.PreviousId,
+		creationDate: config.CreationDate,
+		deathDate:    config.DeathDate,
 		basePrec:     config.BasePrec,
 		pricePrec:    config.PricePrec,
 	}
@@ -216,10 +220,13 @@ func (o *NetOrder) Marshal() ([]byte, error) {
 		Id:           o.id,
 		Side:         o.side,
 		OrderType:    o.orderType,
+		Status:       o.status,
 		Price:        o.price,
 		BaseAmount:   o.baseAmount,
 		FilledAmount: o.filledAmount,
 		PreviousId:   o.previousId,
+		CreationDate: o.creationDate,
+		DeathDate:    o.deathDate,
 		BasePrec:     o.basePrec,
 		PricePrec:    o.pricePrec,
 	})
