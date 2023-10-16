@@ -19,20 +19,20 @@ type Net interface {
 
 type ClassicNet struct {
 	Net
-	BuyOrders  []Order
-	SellOrders []Order
+	BuyOrders  []*NetOrder
+	SellOrders []*NetOrder
 }
 
 func NewEmptyClassicNet() *ClassicNet {
-	buyOrders := make([]Order, 0, 1)
-	sellOrders := make([]Order, 0, 1)
+	buyOrders := make([]*NetOrder, 0, 1)
+	sellOrders := make([]*NetOrder, 0, 1)
 	return &ClassicNet{
 		BuyOrders:  buyOrders,
 		SellOrders: sellOrders,
 	}
 }
 
-func (n *ClassicNet) Orders(side Side) []Order {
+func (n *ClassicNet) Orders(side Side) []*NetOrder {
 	if side == Buy {
 		return n.BuyOrders
 	}
@@ -128,7 +128,7 @@ func (n *ClassicNet) Spread() (length, ratio float64) {
 	return
 }
 
-func (n *ClassicNet) InsertOrder(order Order) {
+func (n *ClassicNet) InsertOrder(order *NetOrder) {
 	if order.Side() == Buy {
 		if len(n.BuyOrders) == 0 {
 			n.insertOrderInTheEnd(order)
@@ -140,7 +140,7 @@ func (n *ClassicNet) InsertOrder(order Order) {
 					n.insertOrderInTheBeginning(order)
 					return
 				}
-				tmp := make([]Order, idx)
+				tmp := make([]*NetOrder, idx)
 				copy(tmp, n.BuyOrders[0:idx])
 				tmp = append(tmp, order)
 				n.BuyOrders = append(tmp, n.BuyOrders[idx:]...)
@@ -160,7 +160,7 @@ func (n *ClassicNet) InsertOrder(order Order) {
 				n.insertOrderInTheBeginning(order)
 				return
 			}
-			tmp := make([]Order, idx)
+			tmp := make([]*NetOrder, idx)
 			copy(tmp, n.SellOrders[0:idx])
 			tmp = append(tmp, order)
 			n.SellOrders = append(tmp, n.SellOrders[idx:]...)
@@ -172,7 +172,7 @@ func (n *ClassicNet) InsertOrder(order Order) {
 	return
 }
 
-func (n *ClassicNet) insertOrderInTheEnd(order Order) {
+func (n *ClassicNet) insertOrderInTheEnd(order *NetOrder) {
 	if order.Side() == Buy {
 		n.BuyOrders = append(n.BuyOrders, order)
 		return
@@ -180,12 +180,12 @@ func (n *ClassicNet) insertOrderInTheEnd(order Order) {
 	n.SellOrders = append(n.SellOrders, order)
 }
 
-func (n *ClassicNet) insertOrderInTheBeginning(order Order) {
+func (n *ClassicNet) insertOrderInTheBeginning(order *NetOrder) {
 	if order.Side() == Buy {
-		n.BuyOrders = append([]Order{order}, n.BuyOrders...)
+		n.BuyOrders = append([]*NetOrder{order}, n.BuyOrders...)
 		return
 	}
-	n.SellOrders = append([]Order{order}, n.SellOrders...)
+	n.SellOrders = append([]*NetOrder{order}, n.SellOrders...)
 }
 
 func (n *ClassicNet) RemoveOrder(id string) {
@@ -197,7 +197,7 @@ func (n *ClassicNet) RemoveOrder(id string) {
 }
 
 func (n *ClassicNet) deleteElementByIdx(side Side, idx int) {
-	var orders *[]Order
+	var orders *[]*NetOrder
 	if side == Buy {
 		orders = &n.BuyOrders
 	} else {
@@ -207,7 +207,7 @@ func (n *ClassicNet) deleteElementByIdx(side Side, idx int) {
 		*orders = (*orders)[1:]
 		return
 	}
-	ret := make([]Order, 0, 1)
+	ret := make([]*NetOrder, 0, 1)
 	ret = append(ret, (*orders)[:idx]...)
 	*orders = append(ret, (*orders)[idx+1:]...)
 }

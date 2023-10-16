@@ -238,7 +238,7 @@ func UnmarshalNetOrder(orderBytes []byte) (Order, error) {
 	return NewNetOrder(&netOrderConfig)
 }
 
-func BaseAmount(orders []Order, basePrec int) float64 {
+func BaseAmount(orders []*NetOrder, basePrec int) float64 {
 	sum := 0.0
 	for _, order := range orders {
 		sum += order.BaseAmount()
@@ -247,7 +247,7 @@ func BaseAmount(orders []Order, basePrec int) float64 {
 	return sum
 }
 
-func QuoteAmount(orders []Order) float64 {
+func QuoteAmount(orders []*NetOrder) float64 {
 	sum := 0.0
 	for _, order := range orders {
 		sum += order.BaseAmount() * order.Price()
