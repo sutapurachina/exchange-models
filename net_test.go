@@ -72,8 +72,9 @@ func TestNetOrder_BaseAmount(t *testing.T) {
 	}
 
 	net.Print()
-	net.RemoveOrder("2")
+	fmt.Println(net.RemoveOrder("2"))
 	net.Print()
+	fmt.Println(net.RemoveOrder("777"))
 	net.RemoveOrder("4")
 	net.Print()
 	net.RemoveOrder("8")

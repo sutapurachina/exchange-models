@@ -188,12 +188,13 @@ func (n *ClassicNet) insertOrderInTheBeginning(order *NetOrder) {
 	n.SellOrders = append([]*NetOrder{order}, n.SellOrders...)
 }
 
-func (n *ClassicNet) RemoveOrder(id string) {
+func (n *ClassicNet) RemoveOrder(id string) bool {
 	side, index, found := n.findOrder(id)
 	if !found {
-		return
+		return false
 	}
 	n.deleteElementByIdx(side, index)
+	return true
 }
 
 func (n *ClassicNet) deleteElementByIdx(side Side, idx int) {
