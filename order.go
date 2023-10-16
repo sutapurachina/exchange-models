@@ -102,7 +102,7 @@ func (o *NetOrder) ID() string {
 	return o.id
 }
 
-func (o *NetOrder) SetID(ID string) Order {
+func (o *NetOrder) SetID(ID string) *NetOrder {
 	o.id = ID
 	return o
 }
@@ -119,7 +119,7 @@ func (o *NetOrder) Status() OrderStatus {
 	return o.status
 }
 
-func (o *NetOrder) SetStatus(status OrderStatus) Order {
+func (o *NetOrder) SetStatus(status OrderStatus) *NetOrder {
 	o.status = status
 	return o
 }
@@ -161,7 +161,7 @@ func (o *NetOrder) PreviousId() string {
 	return o.previousId
 }
 
-func (o *NetOrder) SetPreviousId(id string) Order {
+func (o *NetOrder) SetPreviousId(id string) *NetOrder {
 	o.previousId = id
 	return o
 }
@@ -170,7 +170,7 @@ func (o *NetOrder) CreationDate() time.Time {
 	return o.creationDate
 }
 
-func (o *NetOrder) SetCreationDate(creationDate time.Time) Order {
+func (o *NetOrder) SetCreationDate(creationDate time.Time) *NetOrder {
 	o.creationDate = creationDate
 	return o
 }
@@ -179,7 +179,7 @@ func (o *NetOrder) DeathDate() time.Time {
 	return o.deathDate
 }
 
-func (o *NetOrder) SetDeathDate(deathDate time.Time) Order {
+func (o *NetOrder) SetDeathDate(deathDate time.Time) *NetOrder {
 	o.deathDate = deathDate
 	return o
 }
@@ -229,7 +229,7 @@ func (o *NetOrder) Marshal() ([]byte, error) {
 	return orderBytes, nil
 }
 
-func UnmarshalNetOrder(orderBytes []byte) (Order, error) {
+func UnmarshalNetOrder(orderBytes []byte) (*NetOrder, error) {
 	var netOrderConfig NetOrderConfig
 	err := json.Unmarshal(orderBytes, &netOrderConfig)
 	if err != nil {
