@@ -12,7 +12,7 @@ const (
 )
 
 type P2BConnector struct {
-	client p2pb2b.Client
+	Client p2pb2b.Client
 }
 
 func NewP2BConnector(publicKey, secretKey string) (*P2BConnector, error) {
@@ -21,7 +21,7 @@ func NewP2BConnector(publicKey, secretKey string) (*P2BConnector, error) {
 		return nil, err
 	}
 	return &P2BConnector{
-		client: client,
+		Client: client,
 	}, nil
 }
 
@@ -36,7 +36,7 @@ func (c *P2BConnector) PostLimitOrder(base, quote string, side Side, baseAmount,
 		Price:  Round(price, pricePrecision),
 		Amount: Round(baseAmount, basePrecision),
 	}
-	resp, err := c.client.CreateOrder(req)
+	resp, err := c.Client.CreateOrder(req)
 	if err != nil {
 		return
 	}
@@ -53,7 +53,7 @@ func (c *P2BConnector) CancelOrder(orderId, base, quote string) error {
 		OrderID: numericalOrderId,
 		Market:  symbol(base, quote),
 	}
-	_, err = c.client.CancelOrder(req)
+	_, err = c.Client.CancelOrder(req)
 	return err
 }
 
@@ -80,7 +80,7 @@ func (c *P2BConnector) OpenOrders(base, quote string, basePrecision, pricePrecis
 		Offset: offset,
 		Limit:  limit,
 	}
-	resp, err := c.client.QueryUnexecuted(req)
+	resp, err := c.Client.QueryUnexecuted(req)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (c *P2BConnector) OrderBook(base, quote string, side Side, basePrecision, p
 	if side == Sell {
 		orderSide = P2BSell
 	}
-	resp, err := c.client.GetOrderBook(symbol(base, quote), orderSide, offset, limit)
+	resp, err := c.Client.GetOrderBook(symbol(base, quote), orderSide, offset, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +192,7 @@ func (c *P2BConnector) FullOrderBook(base, quote string, side Side, basePrecisio
 }
 
 func (c *P2BConnector) BestBidBestAsk(base, quote string) (bestBid, bestAsk float64, err error) {
-	res, err := c.client.GetDepthResult(symbol(base, quote), 1)
+	res, err := c.Client.GetDepthResult(symbol(base, quote), 1)
 	if err != nil {
 		return 0, 0, err
 	}
