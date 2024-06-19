@@ -12,6 +12,7 @@ const (
 )
 
 type P2BConnector struct {
+	Connector
 	Client p2pb2b.Client
 }
 

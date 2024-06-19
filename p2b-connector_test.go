@@ -118,20 +118,45 @@ func TestEnemyOrders(t *testing.T) {
 	ourOrders = append(ourOrders, orders...)
 	c, err = NewP2BConnector(o2.Public, o2.Secret)
 	assert.NoError(t, err)
+	for _, order := range ourOrders {
+		if order.Price() == 111.90 {
+			fmt.Println(order)
+			fmt.Println("sp")
+		}
+		delete(ordersHash, order.ID())
+	}
 	orders, err = c.AllOpenOrders("SDFA", "USDT", 3, 2)
 	assert.NoError(t, err)
 	ourOrders = append(ourOrders, orders...)
 	c, err = NewP2BConnector(dpp1.Public, dpp1.Secret)
 	assert.NoError(t, err)
+	for _, order := range ourOrders {
+		if order.Price() == 111.90 {
+			fmt.Println(order)
+			fmt.Println("dpp1")
+		}
+		delete(ordersHash, order.ID())
+	}
 	orders, err = c.AllOpenOrders("SDFA", "USDT", 3, 2)
 	assert.NoError(t, err)
 	ourOrders = append(ourOrders, orders...)
 	c, err = NewP2BConnector(sp.Public, sp.Secret)
 	assert.NoError(t, err)
+	for _, order := range ourOrders {
+		if order.Price() == 111.90 {
+			fmt.Println(order)
+			fmt.Println("sp")
+		}
+		delete(ordersHash, order.ID())
+	}
 	orders, err = c.AllOpenOrders("SDFA", "USDT", 3, 2)
 	assert.NoError(t, err)
 	ourOrders = append(ourOrders, orders...)
 	for _, order := range ourOrders {
+		if order.Price() == 111.90 {
+			fmt.Println(order)
+			fmt.Println("sp")
+		}
 		delete(ordersHash, order.ID())
 	}
 	c, err = NewP2BConnector(oeDPP.Public, oeDPP.Secret)
@@ -139,7 +164,24 @@ func TestEnemyOrders(t *testing.T) {
 	orders, err = c.AllOpenOrders("SDFA", "USDT", 3, 2)
 	assert.NoError(t, err)
 	ourOrders = append(ourOrders, orders...)
+	//for _, order := range ourOrders {
+	//	if order.Price() == 110.34 {
+	//		fmt.Println(order)
+	//		fmt.Println("oe")
+	//		if order.ID() != "195113827375" {
+	//			c.CancelOrder(order.ID(), "SDFA", "USDT")
+	//		}
+	//	}
+	//	delete(ordersHash, order.ID())
+	//}
 	for _, order := range ourOrders {
+		if order.Price() == 111.90 {
+			if order.ID() != "195317445911" {
+				assert.NoError(t, c.CancelOrder(order.ID(), "SDFA", "USDT"))
+			}
+			fmt.Println(order)
+			fmt.Println("oeDPP")
+		}
 		delete(ordersHash, order.ID())
 	}
 	c, err = NewP2BConnector(coatTalisman.Public, coatTalisman.Secret)
@@ -148,6 +190,10 @@ func TestEnemyOrders(t *testing.T) {
 	assert.NoError(t, err)
 	ourOrders = append(ourOrders, orders...)
 	for _, order := range ourOrders {
+		if order.Price() == 111.90 {
+			fmt.Println(order)
+			fmt.Println("coat")
+		}
 		delete(ordersHash, order.ID())
 	}
 	c, err = NewP2BConnector(YDPP.Public, YDPP.Secret)
@@ -156,6 +202,10 @@ func TestEnemyOrders(t *testing.T) {
 	assert.NoError(t, err)
 	ourOrders = append(ourOrders, orders...)
 	for _, order := range ourOrders {
+		if order.Price() == 111.90 {
+			fmt.Println(order)
+			fmt.Println("y")
+		}
 		delete(ordersHash, order.ID())
 	}
 	c, err = NewP2BConnector(ADPP.Public, ADPP.Secret)
@@ -164,9 +214,12 @@ func TestEnemyOrders(t *testing.T) {
 	assert.NoError(t, err)
 	ourOrders = append(ourOrders, orders...)
 	for _, order := range ourOrders {
+		if order.Price() == 111.90 {
+			fmt.Println(order)
+			fmt.Println("A")
+		}
 		delete(ordersHash, order.ID())
 	}
-
 	net := NewEmptyClassicNet()
 
 	for _, order := range ordersHash {

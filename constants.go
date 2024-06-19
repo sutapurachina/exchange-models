@@ -12,6 +12,7 @@ var (
 	P2PB2B  ExchangeName = "P2PB2B"
 	ByBit   ExchangeName = "ByBit"
 	Latoken ExchangeName = "Latoken"
+	AzBit   ExchangeName = "AzBit"
 
 	Buy  Side = "Buy"
 	Sell Side = "Sell"
