@@ -9,4 +9,6 @@ type Connector interface {
 	FullOrderBook(base, quote string, side Side, basePrecision, pricePrecision int) ([]*NetOrder, error)
 	BestBidBestAsk(base, quote string) (bestBid, bestAsk float64, err error)
 	LastPrice(base, quote string) (lastPrice float64, err error)
+	DealHistory(base, quote string, startTime, endTime int64) ([]*Level, error)
+	CurrencyBalance(currency string) (available, freeze float64, err error)
 }
