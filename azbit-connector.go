@@ -1,8 +1,10 @@
 package exchange_models
 
 import (
+	"fmt"
 	azbitgosdk "github.com/sutapurachina/azbit-go-sdk"
 	"math"
+	"time"
 )
 
 type AzBitConnector struct {
@@ -175,4 +177,82 @@ func (c *AzBitConnector) BestBidBestAsk(base, quote string) (bestBid, bestAsk fl
 		}
 	}
 	return
+}
+
+func (c *AzBitConnector) LastPrice(base, quote string) (lastPrice float64, err error) {
+	deals, err := c.Client.Deals(azbitgosdk.DealsRequest{CurrencyPairCode: symbol(base, quote)})
+	if err != nil {
+		return 0, err
+	}
+	if len(deals) == 0 {
+		return 0, fmt.Errorf("no deals found for %s", symbol(base, quote))
+	}
+
+	return deals[0].Price, nil
+}
+
+func (c *AzBitConnector) CurrencyBalance(currency string) (available, freeze float64, err error) {
+	balances, err := c.Client.Balances()
+	if err != nil {
+		return 0, 0, err
+	}
+
+	for _, b := range balances.Balances {
+		if b.CurrencyCode == currency {
+			return b.Amount, 0, nil
+		}
+	}
+	return 0, 0, fmt.Errorf("currency not found for %s", currency)
+}
+
+func (c *AzBitConnector) DealHistory(base, quote string, startTime, endTime int64) ([]*Level, error) {
+	var offset = 1
+	var limit = 100
+	req := azbitgosdk.DealsRequest{
+		CurrencyPairCode: symbol(base, quote),
+		SinceDate:        time.UnixMilli(startTime).Format("2006-01-02T15:04:05"),
+		EndDate:          time.UnixMilli(endTime).Format("2006-01-02T15:04:05"),
+		PageSize:         limit,
+		PageNumber:       offset,
+	}
+	levels := make([]*Level, 0, 1)
+	res, err := c.Client.Deals(req)
+	if err != nil {
+		return nil, err
+	}
+	for _, d := range res {
+
+		level, err := DealToLevelAz(d)
+		if err != nil {
+			return nil, err
+		}
+		levels = append(levels, level)
+	}
+	for res != nil && len(res) != 0 {
+		req.PageNumber += 1
+		res, err = c.Client.Deals(req)
+		if err != nil {
+			return nil, err
+		}
+		for _, d := range res {
+			level, err := DealToLevelAz(d)
+			if err != nil {
+				return nil, err
+			}
+			levels = append(levels, level)
+		}
+	}
+	return levels, nil
+}
+
+func DealToLevelAz(d azbitgosdk.Deal) (*Level, error) {
+	level := &Level{
+		Price: d.Price,
+	}
+	if !d.IsBuy {
+		level.SellAmount = d.Volume
+	} else {
+		level.BuyAmount = d.Volume
+	}
+	return level, nil
 }

@@ -202,6 +202,90 @@ func (c *P2BConnector) BestBidBestAsk(base, quote string) (bestBid, bestAsk floa
 	return
 }
 
+func (c *P2BConnector) LastPrice(base, quote string) (lastPrice float64, err error) {
+	res, err := c.Client.GetTicker(symbol(base, quote))
+	if err != nil {
+		return 0, err
+	}
+	return res.Result.Last, nil
+}
+
+func (c *P2BConnector) CurrencyBalance(currency string) (available, freeze float64, err error) {
+	req := &p2pb2b.AccountCurrencyBalanceRequest{Currency: currency}
+	resp, err := c.Client.PostCurrencyBalance(req)
+	if err != nil {
+		return
+	}
+	balance := resp.Result
+	available = balance.Available
+	freeze = balance.Freeze
+	err = nil
+	return
+}
+
+func (c *P2BConnector) DealHistory(base, quote string, startTime, endTime int64) ([]*Level, error) {
+	var offset int64 = 0
+	var limit int64 = 100
+	req := &p2pb2b.DealsHistoryByMarketRequest{
+		Market:    symbol(base, quote),
+		StartTime: startTime,
+		EndTime:   endTime,
+		Offset:    offset,
+		Limit:     limit,
+	}
+	levels := make([]*Level, 0, 1)
+	res, err := c.Client.DealsHistoryByMarket(req)
+	if err != nil {
+		return nil, err
+	}
+	for _, d := range res.Result.Deals {
+		if !d.IsSelfTrade {
+			level, err := DealToLevel(d)
+			if err != nil {
+				return nil, err
+			}
+			levels = append(levels, level)
+		}
+	}
+	for res.Result.Deals != nil && len(res.Result.Deals) != 0 {
+		req.Offset += 100
+		res, err = c.Client.DealsHistoryByMarket(req)
+		if err != nil {
+			return nil, err
+		}
+		for _, d := range res.Result.Deals {
+			if !d.IsSelfTrade {
+				level, err := DealToLevel(d)
+				if err != nil {
+					return nil, err
+				}
+				levels = append(levels, level)
+			}
+		}
+	}
+	return levels, nil
+}
+
+func DealToLevel(d p2pb2b.DealHistoryEntry) (*Level, error) {
+	price, err := strconv.ParseFloat(d.Price, 64)
+	if err != nil {
+		return nil, err
+	}
+	amount, err := strconv.ParseFloat(d.Amount, 64)
+	if err != nil {
+		return nil, err
+	}
+	level := &Level{
+		Price: price,
+	}
+	if d.Side == "sell" {
+		level.SellAmount = amount
+	} else {
+		level.BuyAmount = amount
+	}
+	return level, nil
+}
+
 func symbol(base, quote string) string {
 	return base + "_" + quote
 }

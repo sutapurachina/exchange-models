@@ -53,6 +53,12 @@ type NetOrder struct {
 	pricePrec    int
 }
 
+type Level struct {
+	Price      float64
+	BuyAmount  float64
+	SellAmount float64
+}
+
 type NetOrderConfig struct {
 	ExName       ExchangeName
 	Symbol       string
