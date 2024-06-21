@@ -33,14 +33,7 @@ func (c *AzBitConnector) CancelOrder(orderId, base, quote string) error {
 }
 
 func (c *AzBitConnector) AllOpenOrders(base, quote string, basePrecision, pricePrecision int) ([]*NetOrder, error) {
-	var offset int64 = 0
-	res := make([]*NetOrder, 0, 1)
-	orders, err := c.OpenOrders(base, quote, basePrecision, pricePrecision, offset, 100)
-	if err != nil {
-		return nil, err
-	}
-	res = append(res, orders...)
-	return res, nil
+	return c.OpenOrders(base, quote, basePrecision, pricePrecision, 0, 0)
 }
 
 func (c *AzBitConnector) OpenOrders(base, quote string, basePrecision, pricePrecision int, offset, limit int64) ([]*NetOrder, error) {
