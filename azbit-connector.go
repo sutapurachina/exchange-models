@@ -40,12 +40,6 @@ func (c *AzBitConnector) AllOpenOrders(base, quote string, basePrecision, priceP
 		return nil, err
 	}
 	res = append(res, orders...)
-	for orders != nil && len(orders) > 0 {
-		offset += 100
-		orders, err = c.OpenOrders(base, quote, basePrecision, pricePrecision, offset, 100)
-		res = append(res, orders...)
-
-	}
 	return res, nil
 }
 
